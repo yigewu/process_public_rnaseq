@@ -1,7 +1,7 @@
-project_template
+Processing public RNA-seq data pipeline
 ==============================
 
-A short description of the project.
+This project was motivated by the need to process TCGA RNA-seq data for multiple projects.
 
 Project Organization
 ------------
