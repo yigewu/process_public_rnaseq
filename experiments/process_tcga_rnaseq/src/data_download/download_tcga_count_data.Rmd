@@ -1,0 +1,55 @@
+---
+title: "Download RNA-seq count data from TCGA + additional lymphoma project"
+author: "Yige Wu"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()[["path"]]))
+dir_out <- "/wd/Projects/NTLA-6002/experiments/process_public_rnaseq/experiments/process_tcga_rnaseq/data/raw/"
+```
+
+```{r load_libraries, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+```
+
+# Get project ids (to build a query)
+```{r review_projects, include=FALSE}
+gdcprojects <- getGDCprojects()
+```
+
+```{r input_project_ids}
+projectids_gdc <- getGDCprojects()$id
+projectids_gdc
+```
+```{r get_tcga_project_ids}
+projectids_query <- projectids_gdc[grepl(pattern = "TCGA|DLBC", x = projectids_gdc)]
+projectids_query
+```
+# Build a query
+Can refer to the help document for the options: https://bioconductor.org/packages/release/bioc/vignettes/TCGAbiolinks/inst/doc/query.html#Harmonized_data_options
+```{r get_query}
+my_query <- GDCquery(project = projectids_query, data.category = "Transcriptome Profiling", experimental.strategy = "RNA-Seq", access = "open")
+```
+
+```{r examine_query}
+output_query <- getResults(my_query)
+output_query %>%
+  distinct(analysis_workflow_type)
+```
+
+All the RNA-seq data from GDC are STAR-Counts
+
+# Download data by query
+```{r}
+GDCdownload(my_query, directory = dir_out)
+```
+
+
+
+

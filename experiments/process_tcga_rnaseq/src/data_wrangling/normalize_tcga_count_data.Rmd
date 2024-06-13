@@ -1,0 +1,54 @@
+---
+title: "Prepare aggregated count matrix and normalize counts usisng edgeR"
+author: "Yige Wu"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd(dirname(rstudioapi::getActiveDocumentContext()[["path"]]))
+dir_in <- "/wd/Projects/NTLA-6002/experiments/process_public_rnaseq/experiments/process_tcga_rnaseq/data/raw/"
+dir_out <- "../../data/processed/"
+```
+
+```{r load_libraries, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+```
+
+# Create aggregated count matrix
+## Re-generate the query
+```{r get_tcga_project_ids}
+gdcprojects <- getGDCprojects()
+projectids_gdc <- getGDCprojects()$id
+projectids_query <- projectids_gdc[grepl(pattern = "TCGA|DLBC", x = projectids_gdc)]
+projectids_query
+```
+
+```{r get_query}
+my_query <- GDCquery(project = projectids_query, data.category = "Transcriptome Profiling", experimental.strategy = "RNA-Seq", access = "open")
+```
+
+## Write out the query results
+```{r}
+output_query <- getResults(my_query)
+output_query %>%
+  distinct(sample_type)
+```
+
+### Write out the query results
+```{r}
+write.table(x = output_query, file = paste0(dir_out, "tcga_rnaseq_starcounts_query_meta_data.tsv"), quote = F, sep = "\t", row.names = )
+```
+
+
+## Prepare the count matrix
+```{r}
+se_obj <- GDCprepare(my_query, directory = dir_in)
+```
+
+
+# Normalize data
